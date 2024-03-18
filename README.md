@@ -12,6 +12,15 @@ The Spring Boot Project Shell Script automates Spring Boot project setup, genera
 
 - `./springboot.sh new <project_name>`: Create a new Spring Boot project.
 - `./springboot.sh make:model <entity_name>`: Generate entity classes, repository interfaces, DTOs, and mappers for a specified entity.
+- `./springboot.sh run`: Restart MySQL and Apache2 services, and start the Spring Boot application.
+
+### Running the Application
+
+The `run` command performs the following actions:
+- Restarts the MySQL service to ensure the database is running.
+- Restarts the Apache2 service, useful if you are using Apache as a reverse proxy or hosting other web applications.
+- Starts the Spring Boot application using Maven, making it accessible at `http://localhost:8080`.
+- Provides access to phpMyAdmin at `https://localhost/phpmyadmin/index.php` for database management.
 
 ## Project Structure
 
