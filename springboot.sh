@@ -65,6 +65,7 @@ generate_entity_repository()
     echo "" >> "EntityRepository/${entityrepository}.java"
     echo "}" >> "EntityRepository/${entityrepository}.java"
 }
+
 generate_entity_dto()
 {
     local entity="$1"
@@ -96,6 +97,7 @@ generate_entity_dto()
     echo "" >> "DtoEntity/${entity}Dto.java"
     echo "}" >> "DtoEntity/${entity}Dto.java"
 }
+
 generate_mapper()
 {
     local entity="$1"
@@ -135,7 +137,7 @@ generate_mapper()
     # maptoEntity method : 
     echo "public static ${entity} mapTo${entity}(${entity}Dto ${entityvar}Dto) {" >> "Mapper/${entity}Mapper.java"
     echo "return new ${entity}(" >> "Mapper/${entity}Mapper.java"
-    
+    echo "  ${entityvar}Dto.getId()," >> "Mapper/${entity}Mapper.java"
     first=true
     echo "" >> "Mapper/${entity}Mapper.java"
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
@@ -158,7 +160,177 @@ generate_mapper()
     echo "}" >> "Mapper/${entity}Mapper.java"
 }
 
-add_dependencies_to_pom(){
+generate_Iservice()
+{
+    local entity="$1"
+    shift
+    local ENTITY=("$@")  
+    
+    local entityvar="${entity,}"
+ 
+    echo "package com.example.$PROJECT_NAME.IService;" > "IService/I${entity}Service.java"
+    echo "import com.example.$PROJECT_NAME.DtoEntity.${entity}Dto;" >> "IService/I${entity}Service.java"
+    echo "import java.util.List;" >> "IService/I${entity}Service.java"
+
+    echo "" >> "IService/I${entity}Service.java"
+    echo "public interface I${entity}Service {" >> "IService/I${entity}Service.java"
+
+    echo "${entity}Dto create${entity}(${entity}Dto ${entityvar}Dto);" >> "IService/I${entity}Service.java"
+    echo "${entity}Dto get${entity}ById(Long ${entityvar}Id);" >> "IService/I${entity}Service.java"
+    echo "List<${entity}Dto> getAll${entity}s();" >> "IService/I${entity}Service.java"
+    echo "${entity}Dto update${entity}(Long ${entityvar}Id,${entity}Dto updated${entity}Dto);" >> "IService/I${entity}Service.java"
+    echo "${entity}Dto delete${entity}(Long ${entityvar}Id);" >> "IService/I${entity}Service.java"
+    echo "}" >> "IService/I${entity}Service.java"
+}
+
+generate_service()
+{
+    local entity="$1"
+    shift
+    local ENTITY=("$@")  
+    
+    local entityvar="${entity,}"
+
+    echo "package com.example.$PROJECT_NAME.Service;" > "Service/${entity}Service.java"
+    echo "import java.util.List;" >> "Service/${entity}Service.java"
+    echo "import java.util.stream.Collectors;" >> "Service/${entity}Service.java"
+    echo "import org.springframework.stereotype.Service;" >> "Service/${entity}Service.java"
+
+    echo "import com.example.$PROJECT_NAME.DtoEntity.${entity}Dto;" >> "Service/${entity}Service.java"
+    echo "import com.example.$PROJECT_NAME.Entity.${entity};" >> "Service/${entity}Service.java"
+    echo "import com.example.$PROJECT_NAME.Exception.ResourceNotFoundException;" >> "Service/${entity}Service.java"
+    echo "import com.example.$PROJECT_NAME.IService.I${entity}Service;">> "Service/${entity}Service.java"
+    echo "import com.example.$PROJECT_NAME.Mapper.${entity}Mapper;" >> "Service/${entity}Service.java"
+    echo "import com.example.$PROJECT_NAME.EntityRepository.${entity}Repository;" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "import lombok.AllArgsConstructor;" >> "Service/${entity}Service.java"
+
+    echo "@Service" >> "Service/${entity}Service.java"
+    echo "@AllArgsConstructor" >> "Service/${entity}Service.java"
+    echo "public class ${entity}Service implements I${entity}Service" >> "Service/${entity}Service.java"
+    echo "{" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "private ${entity}Repository ${entityvar}Repository ;" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "@Override" >> "Service/${entity}Service.java"
+    echo "public ${entity}Dto create${entity}(${entity}Dto ${entityvar}Dto) {" >> "Service/${entity}Service.java"
+    echo "  ${entity} ${entityvar} = ${entity}Mapper.mapTo${entity}(${entityvar}Dto);" >> "Service/${entity}Service.java"
+    echo "  ${entity} Saved${entityvar} = ${entityvar}Repository.save(${entityvar});" >> "Service/${entity}Service.java"
+    echo "return ${entity}Mapper.mapTo${entity}Dto(Saved${entityvar});" >> "Service/${entity}Service.java"
+    echo "}" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "@Override" >> "Service/${entity}Service.java"
+    echo "public ${entity}Dto get${entity}ById(Long ${entityvar}Id) {" >> "Service/${entity}Service.java"
+    echo "${entity} ${entityvar}Finded = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
+    echo ".orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
+    echo "return ${entity}Mapper.mapTo${entity}Dto(${entityvar}Finded);" >> "Service/${entity}Service.java"
+    echo "}" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "@Override" >> "Service/${entity}Service.java"
+    echo "public List<${entity}Dto> getAll${entity}s() {" >> "Service/${entity}Service.java"
+    echo "List<${entity}> ${entityvar}s = ${entityvar}Repository.findAll();" >> "Service/${entity}Service.java"
+    echo "return ${entityvar}s.stream().map((${entityvar}) -> ${entity}Mapper.mapTo${entity}Dto(${entityvar})).collect(Collectors.toList());" >> "Service/${entity}Service.java"
+    echo "}" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "@Override" >> "Service/${entity}Service.java"
+    echo "public ${entity}Dto update${entity}(Long ${entityvar}Id, ${entity}Dto updated${entity}Dto) {" >> "Service/${entity}Service.java"
+    echo "${entity} ${entityvar} = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
+    echo "        .orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
+    echo "// here u ned ot set new fields , like ${entity}.setFIeld(updated${entity}Dto.getField()); for all content" >> "Service/${entity}Service.java"
+    first=true
+    for((i=0 ; i<${#ENTITY[@]}; i+=3));do
+        field_name="${ENTITY[$i]}"
+        field_name_with_first_upper="${field_name^}"
+        first=true
+        if [ "$first" = true ]; then
+            echo -n "${entityvar}.set${field_name_with_first_upper}(updated${entity}Dto.get${field_name_with_first_upper}());" >> "Service/${entity}Service.java"
+        else
+            echo -n "${entityvar}.set${field_name_with_first_upper}(updated${entity}Dto.get${field_name_with_first_upper}());" >> "Service/${entity}Service.java"
+        fi
+    done
+    echo "" >> "Service/${entity}Service.java"
+    echo "${entity} Updated${entityvar} = ${entityvar}Repository.save(${entityvar});"  >> "Service/${entity}Service.java"
+    echo "return ${entity}Mapper.mapTo${entity}Dto(Updated${entityvar});" >> "Service/${entity}Service.java"
+    echo "}" >> "Service/${entity}Service.java"
+    echo "" >> "Service/${entity}Service.java"
+    echo "@Override" >> "Service/${entity}Service.java"
+    echo "public void delete${entity}(Long ${entityvar}Id) {" >> "Service/${entity}Service.java"
+    echo "${entity} ${entityvar} = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
+    echo "        .orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
+    echo "${entityvar}Repository.deleteById(${entityvar}.getId());" >> "Service/${entity}Service.java"
+    echo "}" >> "Service/${entity}Service.java"
+    echo "}" >> "Service/${entity}Service.java"
+
+}
+generate_Controller()
+{
+    local entity="$1"
+    shift
+    local ENTITY=("$@")  
+    
+    local entityvar="${entity,}"
+
+    echo "package com.example.$PROJECT_NAME.Controller;" > "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "import org.springframework.http.HttpStatus;" >> "Controller/${entity}Controller.java"
+    echo "import org.springframework.http.ResponseEntity;" >> "Controller/${entity}Controller.java"
+    echo "import org.springframework.web.bind.annotation.*;" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "import java.util.List;" >> "Controller/${entity}Controller.java"
+    echo "import com.example.$PROJECT_NAME.DtoEntity.${entity}Dto;" >> "Controller/${entity}Controller.java"
+    echo "import com.example.$PROJECT_NAME.Service.${entity}Service;" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "import lombok.AllArgsConstructor;" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "@CrossOrigin(\"*\")" >> "Controller/${entity}Controller.java"
+    echo "@AllArgsConstructor" >> "Controller/${entity}Controller.java"
+    echo "@RestController" >> "Controller/${entity}Controller.java"
+    echo "@RequestMapping(\"/api/${entityvar}\")" >> "Controller/${entity}Controller.java"
+    echo "public class ${entity}Controller {" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "private ${entity}Service ${entityvar}Service;" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "@PostMapping" >> "Controller/${entity}Controller.java"
+    echo "public ResponseEntity<${entity}Dto> create${entity}(@RequestBody ${entity}Dto ${entityvar}Dto)" >> "Controller/${entity}Controller.java"
+    echo "{" >> "Controller/${entity}Controller.java"
+    echo "      ${entity}Dto saved${entity} = ${entityvar}Service.create${entity}(${entityvar}Dto);" >> "Controller/${entity}Controller.java"
+    echo "      return new ResponseEntity<>(saved${entity}, HttpStatus.CREATED);" >> "Controller/${entity}Controller.java"    
+    echo "}" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "@GetMapping(\"{id}\")" >> "Controller/${entity}Controller.java"
+    echo "public ResponseEntity<${entity}Dto> get${entity}ById(@PathVariable(\"id\") Long ${entityvar}Id)" >> "Controller/${entity}Controller.java"
+    echo "{" >> "Controller/${entity}Controller.java"
+    echo "      ${entity}Dto ${entityvar}Dto = ${entityvar}Service.get${entity}ById(${entityvar}Id);" >> "Controller/${entity}Controller.java"
+    echo "      return ResponseEntity.ok(${entityvar}Dto);" >> "Controller/${entity}Controller.java"
+    echo "}" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "@GetMapping" >> "Controller/${entity}Controller.java"
+    echo "public ResponseEntity<List<${entity}Dto>> getAll${entity}()" >> "Controller/${entity}Controller.java"
+    echo "{" >> "Controller/${entity}Controller.java"
+    echo "      List<${entity}Dto> ${entityvar}s = ${entityvar}Service.getAll${entity}s();" >> "Controller/${entity}Controller.java"
+    echo "      return ResponseEntity.ok(${entityvar}s);" >> "Controller/${entity}Controller.java"
+    echo "}" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "@PutMapping(\"{id}\")" >> "Controller/${entity}Controller.java"
+    echo "public ResponseEntity<${entity}Dto> update${entity}(@PathVariable(\"id\") Long ${entityvar}Id, @RequestBody ${entity}Dto ${entityvar}Dto)" >> "Controller/${entity}Controller.java"
+    echo "{" >> "Controller/${entity}Controller.java"
+    echo "      ${entity}Dto ${entityvar} = ${entityvar}Service.update${entity}(${entityvar}Id, ${entityvar}Dto);" >> "Controller/${entity}Controller.java"
+    echo "      return ResponseEntity.ok(${entityvar});" >> "Controller/${entity}Controller.java"
+    echo "}" >> "Controller/${entity}Controller.java"
+    echo "" >> "Controller/${entity}Controller.java"
+    echo "@DeleteMapping(\"{id}\")" >> "Controller/${entity}Controller.java"
+    echo "public ResponseEntity<String> delete${entity}(@PathVariable(\"id\") Long ${entityvar}Id)" >> "Controller/${entity}Controller.java"
+    echo "{" >> "Controller/${entity}Controller.java"
+    echo "      ${entityvar}Service.delete${entity}(${entityvar}Id);" >> "Controller/${entity}Controller.java"
+    echo "      return ResponseEntity.ok(\"${entity} Deleted Successfully !.\");" >> "Controller/${entity}Controller.java"
+    echo "}" >> "Controller/${entity}Controller.java"
+    echo "}" >> "Controller/${entity}Controller.java"
+
+
+}
+
+add_dependencies_to_pom()
+{
     cd "$CURRENT_DIR/$PROJECT_NAME"
     local pom_file="pom.xml"
 
@@ -185,6 +357,21 @@ add_dependencies_to_pom(){
     done
 }
 
+generate_exception_notfound()
+{
+    echo "package com.example.$PROJECT_NAME.Exception;" > "Exception/ResourceNotFoundException.java"
+    echo "import org.springframework.http.HttpStatus;" >> "Exception/ResourceNotFoundException.java"
+    echo "import org.springframework.web.bind.annotation.ResponseStatus;" >> "Exception/ResourceNotFoundException.java"
+    echo "" >> "Exception/ResourceNotFoundException.java"
+    echo "@ResponseStatus(value = HttpStatus.NOT_FOUND)" >> "Exception/ResourceNotFoundException.java"
+    echo "public class ResourceNotFoundException extends RuntimeException{" >> "Exception/ResourceNotFoundException.java"
+    echo "      public ResourceNotFoundException(String message)" >> "Exception/ResourceNotFoundException.java"
+    echo "  {" >> "Exception/ResourceNotFoundException.java"
+    echo "          super(message);" >> "Exception/ResourceNotFoundException.java"
+    echo "  }" >> "Exception/ResourceNotFoundException.java"
+    echo "}" >> "Exception/ResourceNotFoundException.java"
+
+}
 if [ "$1" = "new" ]; then
     # Vérifier si Spring Boot CLI est installé
     if ! command -v spring &>/dev/null; then
@@ -344,7 +531,23 @@ elif [ "$1" = "make:model" ]; then
         mkdir -p "Mapper"
     fi
 
-    
+    # Créer le dossier IService s'il n'existe pas
+    if [ ! -d "IService" ]; then
+        mkdir -p "IService"
+    fi
+    # Créer le dossier Service s'il n'existe pas
+    if [ ! -d "Service" ]; then
+        mkdir -p "Service"
+    fi
+    # Créer le dossier Controller s'il n'existe pas
+    if [ ! -d "Controller" ]; then
+        mkdir -p "Controller"
+    fi
+    # Créer le dossier Exception s'il n'existe pas
+    if [ ! -d "Exception" ]; then
+        mkdir -p "Exception"
+    fi
+
     # Créer des fichiers pour l'entité et le repository de l'entité
     touch -c "Entity/${entity}.java"
     generate_entity "${entity}" "${ENTITY[@]}"
@@ -359,7 +562,25 @@ elif [ "$1" = "make:model" ]; then
     touch -c "Mapper/${entity}Mapper.java"
     generate_mapper "${entity}" "${ENTITY[@]}"
 
+    #Creer les fichier services et iservices
+    touch -c "IService/I${entity}Service.java"
+    touch -c "Service/${entity}Service.java"
+    generate_Iservice "${entity}" "${ENTITY[@]}"
+    generate_service "${entity}" "${ENTITY[@]}"
+
+    #Creer le controller api 
+    touch -c "Controller/${entity}Controller.java"
+    generate_Controller "${entity}" "${ENTITY[@]}"
+
+    #Creer le fichier exceptionnotfound
+    if [ ! -e "Exception/ResourceNotFoundException.java" ]; then
+        touch -c "Exception/ResourceNotFoundException.java"
+        generate_exception_notfound
+    fi
+    
+
     add_dependencies_to_pom
+
 elif [ "$1" = "run" ]; then
     @echo "Restarting Mysql ..."
     @sudo service mysqld restart
