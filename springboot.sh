@@ -127,10 +127,10 @@ generate_mapper()
         first=true
 
         if [ "$first" = true ]; then
-            echo -n "            ${entityvar}.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
             first=false
         else
-            echo -n "            ${entityvar}.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n ",\n            ${entityvar}.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
         fi
         
     done
@@ -149,10 +149,10 @@ generate_mapper()
         echo "" >> "Mapper/${entity}Mapper.java"
         first=true
         if [ "$first" = true ]; then
-            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
             first=false
         else
-            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n ",\n            ${entityvar}Dto.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
         fi
 
     done
