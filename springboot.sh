@@ -25,20 +25,18 @@ generate_entity()
     echo "import lombok.Setter;" >> "Entity/${entity}.java"
     echo "import lombok.NoArgsConstructor;" >> "Entity/${entity}.java"
     echo "" >> "Entity/${entity}.java"
-    
     echo "@Getter" >> "Entity/${entity}.java"
     echo "@Setter" >> "Entity/${entity}.java"
     echo "@NoArgsConstructor" >> "Entity/${entity}.java"
     echo "@AllArgsConstructor" >> "Entity/${entity}.java"
     echo "@Entity" >> "Entity/${entity}.java"
     echo "@Table(name=\"${entity}s\")" >> "Entity/${entity}.java"
-    
     echo "public class ${entity} {" >> "Entity/${entity}.java"
     
     echo "" >> "Entity/${entity}.java"
-    echo "  @Id" >> "Entity/${entity}.java"
-    echo "  @GeneratedValue(strategy = GenerationType.IDENTITY)" >> "Entity/${entity}.java"
-    echo "  private Long id;" >> "Entity/${entity}.java"
+    echo "    @Id" >> "Entity/${entity}.java"
+    echo "    @GeneratedValue(strategy = GenerationType.IDENTITY)" >> "Entity/${entity}.java"
+    echo "    private Long id;" >> "Entity/${entity}.java"
     
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
         field_name="${ENTITY[$i]}"
@@ -46,8 +44,8 @@ generate_entity()
         is_nullable="${ENTITY[$i+2]}"
         
         echo "" >> "Entity/${entity}.java"
-        echo "  @Column(name=\"${field_name}\" , nullable = ${is_nullable})" >> "Entity/${entity}.java"
-        echo "  private ${field_type} ${field_name};" >> "Entity/${entity}.java"
+        echo "    @Column(name=\"${field_name}\" , nullable = ${is_nullable})" >> "Entity/${entity}.java"
+        echo "    private ${field_type} ${field_name};" >> "Entity/${entity}.java"
     done
     echo "" >> "Entity/${entity}.java"
     echo "}" >> "Entity/${entity}.java"
@@ -61,7 +59,9 @@ generate_entity_repository()
     echo "package com.example.$PROJECT_NAME.EntityRepository;" > "EntityRepository/${entityrepository}.java"
     echo "import org.springframework.data.jpa.repository.JpaRepository;" >> "EntityRepository/${entityrepository}.java"
     echo "import com.example.$PROJECT_NAME.Entity.$entity;" >> "EntityRepository/${entityrepository}.java"
-    echo "public interface $entityrepository extends JpaRepository<${entity}, Long> {" >> "EntityRepository/${entityrepository}.java"
+    echo "" >> "EntityRepository/${entityrepository}.java"
+    echo "public interface $entityrepository extends JpaRepository<${entity}, Long> " >> "EntityRepository/${entityrepository}.java"
+    echo "{" >> "EntityRepository/${entityrepository}.java"
     echo "" >> "EntityRepository/${entityrepository}.java"
     echo "}" >> "EntityRepository/${entityrepository}.java"
 }
@@ -82,9 +82,9 @@ generate_entity_dto()
     echo "@NoArgsConstructor" >> "DtoEntity/${entity}Dto.java"
     echo "@AllArgsConstructor" >> "DtoEntity/${entity}Dto.java"
     echo "" >> "DtoEntity/${entity}Dto.java"
-    echo "public class ${entity}Dto {" >> "DtoEntity/${entity}Dto.java"
-    echo "" >> "DtoEntity/${entity}Dto.java"
-    echo "private Long id;" >> "DtoEntity/${entity}Dto.java"
+    echo "public class ${entity}Dto " >> "DtoEntity/${entity}Dto.java"
+    echo "{" >> "DtoEntity/${entity}Dto.java"
+    echo "    private Long id;" >> "DtoEntity/${entity}Dto.java"
 
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
         field_name="${ENTITY[$i]}"
@@ -92,7 +92,7 @@ generate_entity_dto()
         is_nullable="${ENTITY[$i+2]}"
         
         echo "" >> "DtoEntity/${entity}Dto.java"
-        echo "  private ${field_type} ${field_name};" >> "DtoEntity/${entity}Dto.java"
+        echo "    private ${field_type} ${field_name};" >> "DtoEntity/${entity}Dto.java"
     done
     echo "" >> "DtoEntity/${entity}Dto.java"
     echo "}" >> "DtoEntity/${entity}Dto.java"
@@ -113,9 +113,11 @@ generate_mapper()
     echo "public class ${entity}Mapper {" >> "Mapper/${entity}Mapper.java"
     
     # maptoDto method :
-    echo "public static ${entity}Dto mapTo${entity}Dto(${entity} ${entityvar}) {" >> "Mapper/${entity}Mapper.java"
-    echo "return new ${entity}Dto(" >> "Mapper/${entity}Mapper.java"
-    echo "  ${entityvar}.getId()," >> "Mapper/${entity}Mapper.java"
+    echo "    public static ${entity}Dto mapTo${entity}Dto(${entity} ${entityvar})" >> "Mapper/${entity}Mapper.java"
+    echo "    {">> "Mapper/${entity}Mapper.java"
+    echo "        return new ${entity}Dto(" >> "Mapper/${entity}Mapper.java"
+    echo "        (" >> "Mapper/${entity}Mapper.java"
+    echo "            ${entityvar}.getId()," >> "Mapper/${entity}Mapper.java"
     echo "" >> "Mapper/${entity}Mapper.java"
     local first=true
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
@@ -125,19 +127,20 @@ generate_mapper()
         first=true
 
         if [ "$first" = true ]; then
-            echo -n "  ${entityvar}.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
             first=false
         else
-            echo -n "  ${entityvar}.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
         fi
         
     done
-    echo ");" >> "Mapper/${entity}Mapper.java"
-    echo "}" >> "Mapper/${entity}Mapper.java"
+    echo "        );" >> "Mapper/${entity}Mapper.java"
+    echo "    }" >> "Mapper/${entity}Mapper.java"
     # maptoEntity method : 
-    echo "public static ${entity} mapTo${entity}(${entity}Dto ${entityvar}Dto) {" >> "Mapper/${entity}Mapper.java"
-    echo "return new ${entity}(" >> "Mapper/${entity}Mapper.java"
-    echo "  ${entityvar}Dto.getId()," >> "Mapper/${entity}Mapper.java"
+    echo "    public static ${entity} mapTo${entity}(${entity}Dto ${entityvar}Dto) {" >> "Mapper/${entity}Mapper.java"
+    echo "        return new ${entity}" >> "Mapper/${entity}Mapper.java"
+     echo "        (" >> "Mapper/${entity}Mapper.java"
+    echo "            ${entityvar}Dto.getId()," >> "Mapper/${entity}Mapper.java"
     first=true
     echo "" >> "Mapper/${entity}Mapper.java"
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
@@ -146,15 +149,15 @@ generate_mapper()
         echo "" >> "Mapper/${entity}Mapper.java"
         first=true
         if [ "$first" = true ]; then
-            echo -n "  ${entityvar}Dto.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
             first=false
         else
-            echo -n "  ${entityvar}Dto.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()," >> "Mapper/${entity}Mapper.java"
         fi
 
     done
-    echo ");" >> "Mapper/${entity}Mapper.java"
-    echo "}" >> "Mapper/${entity}Mapper.java"
+    echo "        );" >> "Mapper/${entity}Mapper.java"
+    echo "    }" >> "Mapper/${entity}Mapper.java"
 
 
     echo "}" >> "Mapper/${entity}Mapper.java"
@@ -170,16 +173,21 @@ generate_Iservice()
  
     echo "package com.example.$PROJECT_NAME.IService;" > "IService/I${entity}Service.java"
     echo "import com.example.$PROJECT_NAME.DtoEntity.${entity}Dto;" >> "IService/I${entity}Service.java"
+    echo "" >> "IService/I${entity}Service.java"
     echo "import java.util.List;" >> "IService/I${entity}Service.java"
 
     echo "" >> "IService/I${entity}Service.java"
     echo "public interface I${entity}Service {" >> "IService/I${entity}Service.java"
 
-    echo "${entity}Dto create${entity}(${entity}Dto ${entityvar}Dto);" >> "IService/I${entity}Service.java"
-    echo "${entity}Dto get${entity}ById(Long ${entityvar}Id);" >> "IService/I${entity}Service.java"
-    echo "List<${entity}Dto> getAll${entity}s();" >> "IService/I${entity}Service.java"
-    echo "${entity}Dto update${entity}(Long ${entityvar}Id,${entity}Dto updated${entity}Dto);" >> "IService/I${entity}Service.java"
-    echo "${entity}Dto delete${entity}(Long ${entityvar}Id);" >> "IService/I${entity}Service.java"
+    echo "    ${entity}Dto create${entity}(${entity}Dto ${entityvar}Dto);" >> "IService/I${entity}Service.java"
+    echo "" >> "IService/I${entity}Service.java"
+    echo "    ${entity}Dto get${entity}ById(Long ${entityvar}Id);" >> "IService/I${entity}Service.java"
+    echo "" >> "IService/I${entity}Service.java"
+    echo "    List<${entity}Dto> getAll${entity}s();" >> "IService/I${entity}Service.java"
+    echo "" >> "IService/I${entity}Service.java"
+    echo "    ${entity}Dto update${entity}(Long ${entityvar}Id,${entity}Dto updated${entity}Dto);" >> "IService/I${entity}Service.java"
+    echo "" >> "IService/I${entity}Service.java"
+    echo "    void delete${entity}(Long ${entityvar}Id);" >> "IService/I${entity}Service.java"
     echo "}" >> "IService/I${entity}Service.java"
 }
 
@@ -210,31 +218,31 @@ generate_service()
     echo "public class ${entity}Service implements I${entity}Service" >> "Service/${entity}Service.java"
     echo "{" >> "Service/${entity}Service.java"
     echo "" >> "Service/${entity}Service.java"
-    echo "private ${entity}Repository ${entityvar}Repository ;" >> "Service/${entity}Service.java"
+    echo "    private ${entity}Repository ${entityvar}Repository ;" >> "Service/${entity}Service.java"
     echo "" >> "Service/${entity}Service.java"
-    echo "@Override" >> "Service/${entity}Service.java"
+    echo "    @Override" >> "Service/${entity}Service.java"
     echo "public ${entity}Dto create${entity}(${entity}Dto ${entityvar}Dto) {" >> "Service/${entity}Service.java"
-    echo "  ${entity} ${entityvar} = ${entity}Mapper.mapTo${entity}(${entityvar}Dto);" >> "Service/${entity}Service.java"
-    echo "  ${entity} Saved${entityvar} = ${entityvar}Repository.save(${entityvar});" >> "Service/${entity}Service.java"
+    echo "        ${entity} ${entityvar} = ${entity}Mapper.mapTo${entity}(${entityvar}Dto);" >> "Service/${entity}Service.java"
+    echo "        ${entity} Saved${entityvar} = ${entityvar}Repository.save(${entityvar});" >> "Service/${entity}Service.java"
     echo "return ${entity}Mapper.mapTo${entity}Dto(Saved${entityvar});" >> "Service/${entity}Service.java"
-    echo "}" >> "Service/${entity}Service.java"
+    echo "    }" >> "Service/${entity}Service.java"
     echo "" >> "Service/${entity}Service.java"
-    echo "@Override" >> "Service/${entity}Service.java"
-    echo "public ${entity}Dto get${entity}ById(Long ${entityvar}Id) {" >> "Service/${entity}Service.java"
-    echo "${entity} ${entityvar}Finded = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
-    echo ".orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
+    echo "    @Override" >> "Service/${entity}Service.java"
+    echo "    public ${entity}Dto get${entity}ById(Long ${entityvar}Id) {" >> "Service/${entity}Service.java"
+    echo "        ${entity} ${entityvar}Finded = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
+    echo "              .orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
     echo "return ${entity}Mapper.mapTo${entity}Dto(${entityvar}Finded);" >> "Service/${entity}Service.java"
-    echo "}" >> "Service/${entity}Service.java"
+    echo "    }" >> "Service/${entity}Service.java"
     echo "" >> "Service/${entity}Service.java"
-    echo "@Override" >> "Service/${entity}Service.java"
-    echo "public List<${entity}Dto> getAll${entity}s() {" >> "Service/${entity}Service.java"
-    echo "List<${entity}> ${entityvar}s = ${entityvar}Repository.findAll();" >> "Service/${entity}Service.java"
-    echo "return ${entityvar}s.stream().map((${entityvar}) -> ${entity}Mapper.mapTo${entity}Dto(${entityvar})).collect(Collectors.toList());" >> "Service/${entity}Service.java"
-    echo "}" >> "Service/${entity}Service.java"
+    echo "    @Override" >> "Service/${entity}Service.java"
+    echo "    public List<${entity}Dto> getAll${entity}s() {" >> "Service/${entity}Service.java"
+    echo "        List<${entity}> ${entityvar}s = ${entityvar}Repository.findAll();" >> "Service/${entity}Service.java"
+    echo "        return ${entityvar}s.stream().map((${entityvar}) -> ${entity}Mapper.mapTo${entity}Dto(${entityvar})).collect(Collectors.toList());" >> "Service/${entity}Service.java"
+    echo "    }" >> "Service/${entity}Service.java"
     echo "" >> "Service/${entity}Service.java"
-    echo "@Override" >> "Service/${entity}Service.java"
-    echo "public ${entity}Dto update${entity}(Long ${entityvar}Id, ${entity}Dto updated${entity}Dto) {" >> "Service/${entity}Service.java"
-    echo "${entity} ${entityvar} = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
+    echo "    @Override" >> "Service/${entity}Service.java"
+    echo "    public ${entity}Dto update${entity}(Long ${entityvar}Id, ${entity}Dto updated${entity}Dto) {" >> "Service/${entity}Service.java"
+    echo "        ${entity} ${entityvar} = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
     echo "        .orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
     echo "// here u ned ot set new fields , like ${entity}.setFIeld(updated${entity}Dto.getField()); for all content" >> "Service/${entity}Service.java"
     first=true
@@ -243,22 +251,22 @@ generate_service()
         field_name_with_first_upper="${field_name^}"
         first=true
         if [ "$first" = true ]; then
-            echo -n "${entityvar}.set${field_name_with_first_upper}(updated${entity}Dto.get${field_name_with_first_upper}());" >> "Service/${entity}Service.java"
+            echo -n "        ${entityvar}.set${field_name_with_first_upper}(updated${entity}Dto.get${field_name_with_first_upper}());" >> "Service/${entity}Service.java"
         else
-            echo -n "${entityvar}.set${field_name_with_first_upper}(updated${entity}Dto.get${field_name_with_first_upper}());" >> "Service/${entity}Service.java"
+            echo -n "        ${entityvar}.set${field_name_with_first_upper}(updated${entity}Dto.get${field_name_with_first_upper}());" >> "Service/${entity}Service.java"
         fi
     done
     echo "" >> "Service/${entity}Service.java"
-    echo "${entity} Updated${entityvar} = ${entityvar}Repository.save(${entityvar});"  >> "Service/${entity}Service.java"
-    echo "return ${entity}Mapper.mapTo${entity}Dto(Updated${entityvar});" >> "Service/${entity}Service.java"
-    echo "}" >> "Service/${entity}Service.java"
+    echo "        ${entity} Updated${entityvar} = ${entityvar}Repository.save(${entityvar});"  >> "Service/${entity}Service.java"
+    echo "        return ${entity}Mapper.mapTo${entity}Dto(Updated${entityvar});" >> "Service/${entity}Service.java"
+    echo "    }" >> "Service/${entity}Service.java"
     echo "" >> "Service/${entity}Service.java"
-    echo "@Override" >> "Service/${entity}Service.java"
-    echo "public void delete${entity}(Long ${entityvar}Id) {" >> "Service/${entity}Service.java"
-    echo "${entity} ${entityvar} = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
-    echo "        .orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
-    echo "${entityvar}Repository.deleteById(${entityvar}.getId());" >> "Service/${entity}Service.java"
-    echo "}" >> "Service/${entity}Service.java"
+    echo "    @Override" >> "Service/${entity}Service.java"
+    echo "    public void delete${entity}(Long ${entityvar}Id) {" >> "Service/${entity}Service.java"
+    echo "        ${entity} ${entityvar} = ${entityvar}Repository.findById(${entityvar}Id)" >> "Service/${entity}Service.java"
+    echo "              .orElseThrow(() -> new ResourceNotFoundException(\"${entity} Does not exist !\"));" >> "Service/${entity}Service.java"
+    echo "        ${entityvar}Repository.deleteById(${entityvar}.getId());" >> "Service/${entity}Service.java"
+    echo "    }" >> "Service/${entity}Service.java"
     echo "}" >> "Service/${entity}Service.java"
 
 }
@@ -336,10 +344,32 @@ add_dependencies_to_pom()
 
     # Define the dependencies to be added
     local dependencies=(
-        '<dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><version>2.2.224</version><scope>test</scope></dependency>'
-        '<dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId><version>3.2.3</version></dependency>'
-        '<dependency><groupId>com.mysql</groupId><artifactId>mysql-connector-j</artifactId><version>8.3.0</version></dependency>'
-        '<dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>1.18.30</version><scope>provided</scope></dependency>'
+        '		<dependency>
+        			<groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>2.2.224</version>
+                    <scope>test</scope>
+                </dependency>
+        '
+        '		<dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-jpa</artifactId>
+                    <version>3.2.3</version>
+                </dependency>
+        '
+        '       <dependency>
+                    <groupId>com.mysql</groupId>
+                    <artifactId>mysql-connector-j</artifactId>
+                    <version>8.3.0</version>
+                </dependency>
+        '
+        '       <dependency>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                    <version>1.18.30</version>
+                    <scope>provided</scope>
+                </dependency>
+        '
     )
     # Check and insert each dependency if it doesn't exist
     for dependency in "${dependencies[@]}"; do
@@ -365,10 +395,11 @@ generate_exception_notfound()
     echo "" >> "Exception/ResourceNotFoundException.java"
     echo "@ResponseStatus(value = HttpStatus.NOT_FOUND)" >> "Exception/ResourceNotFoundException.java"
     echo "public class ResourceNotFoundException extends RuntimeException{" >> "Exception/ResourceNotFoundException.java"
-    echo "      public ResourceNotFoundException(String message)" >> "Exception/ResourceNotFoundException.java"
-    echo "  {" >> "Exception/ResourceNotFoundException.java"
-    echo "          super(message);" >> "Exception/ResourceNotFoundException.java"
-    echo "  }" >> "Exception/ResourceNotFoundException.java"
+    echo "" >> "Exception/ResourceNotFoundException.java"
+    echo "    public ResourceNotFoundException(String message)" >> "Exception/ResourceNotFoundException.java"
+    echo "    {" >> "Exception/ResourceNotFoundException.java"
+    echo "        super(message);" >> "Exception/ResourceNotFoundException.java"
+    echo "    }" >> "Exception/ResourceNotFoundException.java"
     echo "}" >> "Exception/ResourceNotFoundException.java"
 
 }
