@@ -11,7 +11,7 @@ The Spring Boot Project Shell Script automates Spring Boot project setup, genera
 ### Commands
 
 - `./springboot.sh new <project_name>`: Create a new Spring Boot project.
-- `./springboot.sh make:model <entity_name>`: Generate entity classes, repository interfaces, DTOs, and mappers for a specified entity.
+- `./springboot.sh make:model <entity_name>`: Generate entity classes, repository interfaces, DTOs, and mappers for a specified entity , and the restAPI Controller
 - `./springboot.sh run`: Restart MySQL and Apache2 services, and start the Spring Boot application.
 
 ### Running the Application
@@ -29,6 +29,7 @@ The `run` command performs the following actions:
 - `EntityRepository/`: Directory to store generated repository interfaces.
 - `DtoEntity/`: Directory to store generated DTO classes.
 - `Mapper/`: Directory to store generated mapper classes.
+- `Controller/`: Directory to store generated Controller classes.
 
 ## License
 
