@@ -20,6 +20,7 @@ generate_entity()
     echo "import jakarta.persistence.GenerationType;" >> "Entity/${entity}.java"
     echo "import jakarta.persistence.Id;" >> "Entity/${entity}.java"
     echo "import jakarta.persistence.Table;" >> "Entity/${entity}.java"
+    echo "import java.util.Date;" >> "Entity/${entity}.java"
     echo "import lombok.AllArgsConstructor;" >> "Entity/${entity}.java"
     echo "import lombok.Getter;" >> "Entity/${entity}.java"
     echo "import lombok.Setter;" >> "Entity/${entity}.java"
@@ -76,6 +77,7 @@ generate_entity_dto()
     echo "import lombok.Getter;" >> "DtoEntity/${entity}Dto.java"
     echo "import lombok.Setter;" >> "DtoEntity/${entity}Dto.java"
     echo "import lombok.NoArgsConstructor;" >> "DtoEntity/${entity}Dto.java"
+    echo "import java.util.Date;" >> "DtoEntity/${entity}Dto.java"
     echo "" >> "DtoEntity/${entity}Dto.java"
     echo "@Getter" >> "DtoEntity/${entity}Dto.java"
     echo "@Setter" >> "DtoEntity/${entity}Dto.java"
@@ -115,9 +117,9 @@ generate_mapper()
     # maptoDto method :
     echo "    public static ${entity}Dto mapTo${entity}Dto(${entity} ${entityvar})" >> "Mapper/${entity}Mapper.java"
     echo "    {">> "Mapper/${entity}Mapper.java"
-    echo "        return new ${entity}Dto(" >> "Mapper/${entity}Mapper.java"
+    echo "        return new ${entity}Dto" >> "Mapper/${entity}Mapper.java"
     echo "        (" >> "Mapper/${entity}Mapper.java"
-    echo "            ${entityvar}.getId()," >> "Mapper/${entity}Mapper.java"
+    echo "            ${entityvar}.getId()" >> "Mapper/${entity}Mapper.java"
     echo "" >> "Mapper/${entity}Mapper.java"
     local first=true
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
@@ -127,10 +129,10 @@ generate_mapper()
         first=true
 
         if [ "$first" = true ]; then
-            echo -n "            ${entityvar}.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
+            echo -n ",\n             ${entityvar}.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
             first=false
         else
-            echo -n ",\n            ${entityvar}.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
+            echo -n "           ${entityvar}.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
         fi
         
     done
@@ -140,7 +142,7 @@ generate_mapper()
     echo "    public static ${entity} mapTo${entity}(${entity}Dto ${entityvar}Dto) {" >> "Mapper/${entity}Mapper.java"
     echo "        return new ${entity}" >> "Mapper/${entity}Mapper.java"
      echo "        (" >> "Mapper/${entity}Mapper.java"
-    echo "            ${entityvar}Dto.getId()," >> "Mapper/${entity}Mapper.java"
+    echo "            ${entityvar}Dto.getId()" >> "Mapper/${entity}Mapper.java"
     first=true
     echo "" >> "Mapper/${entity}Mapper.java"
     for((i=0 ; i <${#ENTITY[@]}; i+=3));do
@@ -149,10 +151,10 @@ generate_mapper()
         echo "" >> "Mapper/${entity}Mapper.java"
         first=true
         if [ "$first" = true ]; then
-            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
+            echo -n ",\n             ${entityvar}Dto.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
             first=false
         else
-            echo -n ",\n            ${entityvar}Dto.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
+            echo -n "            ${entityvar}Dto.get${field_name_with_first_upper}()" >> "Mapper/${entity}Mapper.java"
         fi
 
     done
@@ -344,32 +346,10 @@ add_dependencies_to_pom()
 
     # Define the dependencies to be added
     local dependencies=(
-        '		<dependency>
-        			<groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                    <version>2.2.224</version>
-                    <scope>test</scope>
-                </dependency>
-        '
-        '		<dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-jpa</artifactId>
-                    <version>3.2.3</version>
-                </dependency>
-        '
-        '       <dependency>
-                    <groupId>com.mysql</groupId>
-                    <artifactId>mysql-connector-j</artifactId>
-                    <version>8.3.0</version>
-                </dependency>
-        '
-        '       <dependency>
-                    <groupId>org.projectlombok</groupId>
-                    <artifactId>lombok</artifactId>
-                    <version>1.18.30</version>
-                    <scope>provided</scope>
-                </dependency>
-        '
+        '<dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><version>2.2.224</version><scope>test</scope></dependency>'
+        '<dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId><version>3.2.3</version></dependency>'
+        '<dependency><groupId>com.mysql</groupId><artifactId>mysql-connector-j</artifactId><version>8.3.0</version></dependency>'
+        '<dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>1.18.30</version><scope>provided</scope></dependency>'
     )
     # Check and insert each dependency if it doesn't exist
     for dependency in "${dependencies[@]}"; do
@@ -500,6 +480,7 @@ elif [ "$1" = "make:model" ]; then
             echo "1 - String"
             echo "2 - Integer"
             echo "3 - Double"
+            echo "4 - Date"
             read choice
             case $choice in
                 1)
@@ -512,6 +493,10 @@ elif [ "$1" = "make:model" ]; then
                 ;;
                 3)
                     ENTITY+=("double")
+                    valid_input=true
+                ;;
+                4)
+                    ENTITY+=("Date")
                     valid_input=true
                 ;;
                 *)
